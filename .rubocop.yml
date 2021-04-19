@@ -1,0 +1,42 @@
+# The behavior of RuboCop can be controlled via the .rubocop.yml
+# configuration file. It makes it possible to enable/disable
+# certain cops (checks) and to alter their behavior if they accept
+# any parameters. The file can be placed either in your home
+# directory or in some project directory.
+#
+# RuboCop will start looking for the configuration file in the directory
+# where the inspected file is and continue its way up to the root directory.
+#
+# See https://docs.rubocop.org/rubocop/configuration
+AllCops:
+  Exclude:
+    - 'Gemfile'
+    - 'spec/spec_helper.rb'
+  NewCops: enable
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+Layout/LineLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'lib/game_console.rb'
+    - 'lib/validate_move.rb'
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/authenticate.rb'
+    - 'lib/board.rb'
+Metrics/MethodLength:
+  Exclude:
+    - 'lib/movement/pawn_elevation.rb'
+    - 'lib/show_board.rb'
+    - 'game_engine.rb'
+Style/MixinUsage:
+  Exclude:
+    - 'lib/game_engine.rb'
+Security/MarshalLoad:
+  Exclude:
+    - 'lib/serialized.rb'
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/movement/pawn_elevation.rb'
+  
