@@ -118,7 +118,7 @@ class Authenticate
         puts en_passant_warning if @board.is_en_passant_possible?
         puts castling_warning if @board.is_castling_possible?
         input = player_input(player_shift_selection)
-        confirm_move_input(input)
+        confirm_shift_input(input)
         quit_game if input.upcase = 'Q'
         input
     end
@@ -131,15 +131,33 @@ class Authenticate
         @board.random_bl_piece
     end
 
+
+    def computer_make_random_shift
+        @board.random_bl_shift
+    end
+
+
     def confirm_piece_input(input)
         raise InputError unless input.match?(/^[a-h][1-8]$|^[q]$|^[s]$/i)
     end
 
-    def confirm_move_input(input)
+    def confirm_shift_input(input)
         raise InputError unless input.match?(/^[a-h][1-8]$/i)
     end
 
-    def confirm_piece_axis(input)
+    def confirm_piece_axis(axis)
+        raise AxisError unless @board.valid_piece?(axis, @live_turn)
+    end
+
+    def comfirm_shift(axis)
+        raise ShiftError unless @board.valid_piece_move?(axis)
+    end
+
+    def validat_live_piece
+        raise PieceError unless @board.live_piece_can_shift?
+    end
+
+    def translate_axis(axis)
         converter ||= Translate.new
         converter.translate(input)
     end
