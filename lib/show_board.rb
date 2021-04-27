@@ -4,16 +4,16 @@ module Show
     def display_board
         system 'clear'
         puts
-        puts "\[36m     a   b   c   d   e   f   g   h \e[0m"
+        puts "\e[36m    a  b  c  d  e  f  g  h \e[0m"
         print_board
-        puts "\e[36m    a   b   c   d   e   f   g   h \e[0m"
+        puts "\e[36m    a  b  c  d  e  f  g  h \e[0m"
         puts
     end
 
     def print_board
-        @grid.each_with_index do |row, idx|
+        @grid.each_with_index do |rank, idx|
             print "\e[36m #{8 - idx} \e[0m"
-            print_rank(row, idx)
+            print_rank(rank, idx)
             print "\e[36m #{8 - idx} \e[0m"
             puts
         end
@@ -26,13 +26,15 @@ module Show
         end
     end
 
-    def select_bg(rank_idx, file_idx)
+    def chose_bg(rank_idx, file_idx)
         if @live_piece&.position == [rank_idx, file_idx]
             106
         elsif capture_bg?(rank_idx, file_idx)
             101
         elsif @prev_piece&.position == [rank_idx, file_idx]
             46
+        elsif (rank_idx + file_idx).even?
+            47
         else
             100
         end
@@ -42,14 +44,14 @@ module Show
         @live_piece&.captures&.any?([rank, file]) && @grid[rank][file]
     end
 
-    def print_square(rank_idx, idx, square, bg)
+    def print_square(rank_idx, file_idx, square, bg)
         if square
             txt_color = square.color == :white ? 97 : 30
             paint_square(txt_color, bg, square.symbol)
-        elsif @live_piece&.shifts.any?(rank_idx, file_idx)
+        elsif @live_piece&.shifts&.any?([rank_idx, file_idx])
             paint_square(91, bg, " \u25CF ")
         else
-            paint_square(30, bg, ' ')
+            paint_square(30, bg, '   ')
         end
     end
 

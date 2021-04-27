@@ -9,7 +9,7 @@ class GameBoard
     attr_reader :bl_king, :wh_king, :status
     attr_accessor :grid, :live_piece, :prev_piece
 
-    def initialize(grid = Array.new(8) {Array.new(8)}, parameters = {})
+    def initialize(grid = Array.new(8) { Array.new(8) }, parameters = {})
         @grid = grid
         @live_piece = parameters[:live_piece]
         @prev_piece = parameters[:prev_piece]
@@ -39,18 +39,17 @@ class GameBoard
 
     def update(axis)
         type = shift_type(axis)
-        move = MoveGenerator.new(type).create
-        move.update_pieces(self, axis)
+        shift = MoveGenerator.new(type).create
+        shift.update_pieces(self, axis)
         reset_board
     end
 
     def shift_type(axis)
-        case axis
-        when en_passant_capture?
+        if en_passant_capture?(axis)
             'EnPasant'
-        when pawn_elevation?
+        elsif pawn_elevation?(axis)
             'PawnElevation'
-        when castling?
+        elsif castling?(axis)
             'Castling'
         else
             'Basic'
@@ -60,30 +59,25 @@ class GameBoard
     def reset_board
         @prev_piece = @live_piece
         @live_piece = nil
-        modified
-        tell_observer(self)
+        changed
+        notify_observers(self)
     end
 
     def is_en_passant_possible?
-        @live_piece&.captures.include?(@prev_piece&.position) &&
-            en_passant_pawn?
+        @live_piece&.captures&.include?(@prev_piece&.position) && en_passant_pawn?
     end
 
 
     def is_castling_possible?
-        @live_piece.symbol == " \265A " && castling_shifts?
+        @live_piece.symbol == " \u265A " && castling_shifts?
     end
 
-    def is_king_check?(color)
-        if king = color == :white
-            @wh_king
-        else
-            @bl_king
-        end
+    def is_king_in_check?(color)
+        king = color == :white ? @wh_king : @bl_king
 
         pieces = @grid.flatten(1).compact
         pieces.any? do |piece|
-            next while piece.color == king.color
+            next unless piece.color != king.color
 
             piece.captures.include?(king.position)
         end
@@ -98,11 +92,11 @@ class GameBoard
     def uncontrolled_bl_piece
         pieces = @grid.flatten(1).compact
         bl_pieces = pieces.select do |piece|
-            next while piece.color != :black
+            next unless piece.color == :black
             piece.shifts.size.positive? || piece.captures.size.positive?
         end
 
-        position = bl_pieces.equivalent
+        position = bl_pieces.sample.position
         { rank: position[0], file: position[1] }
     end
 
@@ -112,7 +106,7 @@ class GameBoard
     end
 
     def end_of_game?
-        return false while !@prev_piece
+        return false unless @prev_piece
 
         if prev_color = @prev_piece.color == :white
             :black
@@ -126,10 +120,10 @@ class GameBoard
     def starting_position
         starting_rank(:black, 0)
         starting_pawn_rank(:black, 1)
-        starting_pawn_rank(:whit, 6)
+        starting_pawn_rank(:white, 6)
         starting_rank(:white, 7)
-        @wh_king = grid[7][4]
-        @bl_king = grid[0][4]
+        @wh_king = @grid[7][4]
+        @bl_king = @grid[0][4]
         update_all_captures
     end
 
@@ -137,23 +131,25 @@ class GameBoard
         display_board
     end
 
-    def starting_pawn_rank(rank, num)
+    private
+    def starting_pawn_rank(color, num)
         8.times do |idx|
-            @grid[num][idx] =
-                Pawn.new(self, {color: color, position: [num, idx]})
+            @grid[num][idx] = Pawn.new(self, { color: color, position: [num, idx] })
         end
     end
 
+    
+
     def starting_rank(color, num)
         @grid[num] = [
-            Rook.new(self, {color: color, position: [num, 0]}),
-            Knight.new(self, {color: color, position: [num, 1]}),
-            Bishop.new(self, {color: color, position: [num, 2]}),
-            Queen.new(self, {color: color, position: [num, 3]}),
-            King.new(self, {color: color, position: [num, 4]}),
-            Bishop.new(self, {color: color, position: [num, 5]}),
-            Knight.new(self, {color: color, position: [num, 6]}),
-            Rook.new(self, {color: color, position: [num, 7]}),
+            Rook.new(self, { color: color, position: [num, 0] }),
+            Knight.new(self, { color: color, position: [num, 1] }),
+            Bishop.new(self, { color: color, position: [num, 2] }),
+            Queen.new(self, { color: color, position: [num, 3] }),
+            King.new(self, { color: color, position: [num, 4] }),
+            Bishop.new(self, { color: color, position: [num, 5] }),
+            Knight.new(self, { color: color, position: [num, 6]}),
+            Rook.new(self, { color: color, position: [num, 7] })
         ]
     end
 
@@ -171,8 +167,8 @@ class GameBoard
     end
 
     def castling?(axis)
-        file_deviation = (axis[:file] - @live_piece.position[1].abs)
-        @live_piece&.symbol == " \u265A " && file_deviation == 2
+        file_disorder= (axis[:file] - @live_piece.position[1]).abs
+        @live_piece&.symbol == " \u265A " && file_disorder == 2
     end
 
     def elevation_level?(rank)
@@ -181,11 +177,11 @@ class GameBoard
     end
 
     def en_passant_pawn?
-        double_pawns? && @live_piece.en_passant_rank? && @prev_piece.en_passant_pawn?
+        double_pawns? && @live_piece.en_passant_rank? && @prev_piece.en_passant
     end
 
     def double_pawns?
-        @prev_piece.symbol == " \265F " && @live_piece.symbol == " \265F"
+        @prev_piece.symbol == " \u265F " && @live_piece.symbol == " \u265F"
     end
 
     def castling_shifts?
@@ -201,10 +197,12 @@ class GameBoard
     def no_legal_captures?(color)
         pieces = @grid.flatten(1).compact
         pieces.none? do |piece|
-            next while piece.color != color
+            next unless piece.color == color
+
+            piece.shifts.size.positive? || piece.captures.size.positive?
         end
     end
 end
 
-display = GameBoard.new()
-display.display_board
+#display = GameBoard.new()
+#display.display_board

@@ -33,7 +33,7 @@ Metrics/MethodLength:
 Style/MixinUsage:
   Exclude:
     - 'lib/game_engine.rb'
-Security/MarshalLoad:
+Security/YamlLoad:
   Exclude:
     - 'lib/serialized.rb'
 Metrics/AbcSize:
