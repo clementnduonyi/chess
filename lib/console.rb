@@ -1,12 +1,10 @@
-module GameConsole
+
+module Console
     def get_game_status
         player_status = gets.chomp
-        if player_status.macth?(/^[923]$/)
-            return player_status
-        else
-            puts 'Input error! Enter any of [9, 2, 3].'
-        end
-        
+        return player_status if player_status.match?(/^[923]$/)
+
+        puts 'Input error! Enter any of [9, 2, 3].'
         get_game_status
     end
 
@@ -25,8 +23,8 @@ module GameConsole
     def game_decision
         if !@counter.positive?
             return
-        elsif @board.is_king_check?(@live_turn)
-            puts "\[36#{prev_color}\e[0m wins! The #{@live_turn} king is checkmate."
+        elsif @board.is_king_in_check?(@live_turn)
+            puts "\e[36m#{prev_color}\e[0m wins! The #{@live_turn} king is checkmate."
         else
             puts "\e[36m#{prev_color}\e[0m wins in a stalemate!"
         end
@@ -44,10 +42,10 @@ module GameConsole
             Enter the axis of the piece to move.
 
             \e[36mStep Two:\e[0m
-            Enter the axis of any legal move \e[91;100m \25CF \e[0m or capture \e[101m \265F \e[0m.
+            Enter the axis of any legal move \e[91;100m \u25CF \e[0m or capture \e[101m \u265F \e[0m.
             
             To start, enter:
-            \e[36m[1]\e[0m to start a \e[36mnew single-player\e[0m with the computer
+            \e[36m[9]\e[0m to start a \e[36mnew single-player\e[0m with the computer
             \e[36m[2]\e[0m to play a \e[36mnew 2-player\e[0m game
             \e[36m[3]\e[0m to load a \e[36msaved\e[0m game
         HEREDOC
@@ -79,7 +77,7 @@ module GameConsole
         <<~HEREDOC
             A possible capture of the opposing pawn detected. To capture the pawn en passant (enrout) enter the \e[41mhighlighted axis\e[0m.
             
-            Consequently, \e[36 your pawn will be moved to the square in front of the captured pawn\e[0m.
+            Consequently, \e[36m your pawn will be moved to the square in front of the captured pawn\e[0m.
         HEREDOC
     end
 
