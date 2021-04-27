@@ -1,4 +1,4 @@
-class validate_move
+class ValidatMove
     def initialize(position, board, shifts, piece = board.grid[position[0]][position[1]])
         @live_position = position
         @board = board
@@ -18,23 +18,30 @@ class validate_move
     def legal_shift?(shift)
         captured_piece = @board.grid[shift[0]][shift[1]]
         shift_live_piece(shift)
-        king = king_position || shift
+        king = @king_position || shift
         res = is_king_safe?(king)
         @board.grid[shift[0]][shift[1]] = captured_piece
         res
     end
 
+    def shift_live_piece(shift)
+        @board.grid[shift[0]][shift[1]] = @live_piece
+        @live_piece.update_position(shift[0], shift[1])
+    end
 
-    def is_king_safe?(king_positon)
+
+    def is_king_safe?(king_position)
         pieces = @board.grid.flatten(1).compact
         pieces.none?  do |piece|
-            if pieces.color == live_piece.color
+            if piece.color == @live_piece.color
                 next
             end
-            captures = piece.fine_possible_captures(@board)
+            captures = piece.check_for_possible_captures(@board)
             captures.include?(king_position)
         end
     end
+
+
 
     def locate_king
         if @live_piece.symbol == " \u265A "

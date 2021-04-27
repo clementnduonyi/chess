@@ -15,7 +15,7 @@ module Serailized
             Dir.mkdir 'games'
         end
         file_name = create_file
-        File.open("./games/#{my_game}.yml", 'w') do |file|
+        File.open("./games/#{save_game}.yml", 'w') do |file|
             YAML.dump([].push(self), file)
         end
         puts "Game saved as \e[36m#{file_name}\e[0m"
@@ -26,8 +26,8 @@ module Serailized
     end
 
     def create_file
-        date = Time.now.strtime('%Y-%m-%d').to_s
-        time = Time.now.strtime('%H:%M:%S').to_s
+        date = Time.now.strftime('%Y-%m-%d').to_s
+        time = Time.now.strftime('%H:%M:%S').to_s
         "Chess #{date} at #{time}"
     end
 

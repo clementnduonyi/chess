@@ -7,7 +7,7 @@ class Translate
     def translate(alpha_num)
         axis = alpha_num.split(//)
         translate_rank(axis[1])
-        translate_file{axis[0]}
+        translate_file(axis[0])
         {rank: @rank, file: @file}
     end
 
